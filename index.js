@@ -77,7 +77,10 @@ export default {
       };
 
       // --- 4. SEND ---
-      await fetch(targetWebhook, {
+      // 🚨 THREADING FIX: Google requires this specific URL parameter to allow replies
+      const webhookUrlWithThreading = targetWebhook + "&messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD";
+
+      await fetch(webhookUrlWithThreading, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
