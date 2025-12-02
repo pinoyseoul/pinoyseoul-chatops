@@ -54,8 +54,12 @@ export default {
         targetWebhook = BOARD_ROUTES[detectedBoard];
       }
 
-      // --- 3. CONSTRUCT CARD ---
+      // --- 3. CONSTRUCT CARD WITH THREADING ---
       const payload = {
+        // THREADING ENABLED: Group by Card ID
+        "thread": { 
+          "threadKey": data.threadKey 
+        },
         "cardsV2": [{
           "cardId": "ps-planka-" + Date.now(),
           "card": {
@@ -94,6 +98,7 @@ export default {
 function parsePlankaGeneric(text) {
   let headerTitle = "Project Activity";
   let widgets = [];
+  let threadKey = "general-update"; // Default key if card ID not found
   
   // --- REGEX PATTERNS (Markdown Support) ---
   const moveMatch = text.match(/^(.*?) moved \[(.*?)\]\((.*?)\) from \*\*(.*?)\*\* to \*\*(.*?)\*\* on (.*?)$/);
@@ -109,13 +114,12 @@ function parsePlankaGeneric(text) {
     const fromList = moveMatch[4];
     const toList = moveMatch[5];
     const boardName = moveMatch[6];
+    
+    // Extract Card ID for Threading (last part of URL)
+    threadKey = extractCardId(cardUrl);
 
     // 🛑 FILTER: BLOCK NOISE
-    // Ignore moves TO Trash
     if (toList.match(/Trash/i)) return null;
-    
-    // Ignore moves TO Backlog/Pitch (Regression)
-    // Exception: Unless it came from Trash (Restoration), but usually we ignore.
     if (toList.match(/Pitch|Backlog|Planning|Scouting|Search/i)) return null;
 
     // ✅ ALLOW: VICTORY
@@ -150,7 +154,7 @@ function parsePlankaGeneric(text) {
         }
       );
     }
-    // ✅ ALLOW: GENERIC FORWARD MOVE (e.g. Ready for Blogger)
+    // ✅ ALLOW: GENERIC FORWARD MOVE
     else {
       headerTitle = "🔄 STATUS UPDATE";
       widgets.push(
@@ -166,7 +170,7 @@ function parsePlankaGeneric(text) {
         }
       );
     }
-    return { headerTitle, widgets, boardName };
+    return { headerTitle, widgets, boardName, threadKey };
   } 
   
   else if (createMatch) {
@@ -176,7 +180,8 @@ function parsePlankaGeneric(text) {
     const listName = createMatch[4] || "Backlog";
     const boardName = createMatch[5];
     
-    // CREATION IS ALWAYS GOOD NEWS (Even in Backlog)
+    threadKey = extractCardId(cardUrl);
+    
     headerTitle = "✨ NEW CARD CREATED";
     
     widgets.push(
@@ -191,7 +196,7 @@ function parsePlankaGeneric(text) {
         }
       }
     );
-    return { headerTitle, widgets, boardName };
+    return { headerTitle, widgets, boardName, threadKey };
   }
   
   else if (commentMatch) {
@@ -201,11 +206,10 @@ function parsePlankaGeneric(text) {
     const boardName = commentMatch[4];
     let commentContent = commentMatch[5];
 
-    // Clean up Markdown
+    threadKey = extractCardId(cardUrl);
     commentContent = commentContent.replace(/^\*|\*$/g, ''); 
 
     // 🛑 FILTER: IGNORE SHORT COMMENTS
-    // If comment is less than 4 characters (e.g. "ok", "up"), ignore it.
     if (commentContent.length < 4) return null;
 
     headerTitle = "💬 NEW COMMENT";
@@ -222,15 +226,23 @@ function parsePlankaGeneric(text) {
         }
       }
     );
-    return { headerTitle, widgets, boardName };
+    return { headerTitle, widgets, boardName, threadKey };
   }
   
-  // FALLBACK (If we can't parse it, but it came from Planka, send it anyway to be safe)
+  // FALLBACK
   else {
     headerTitle = "📋 TEAM ACTIVITY";
     widgets.push({
       "textParagraph": { "text": text }
     });
-    return { headerTitle, widgets, boardName: null };
+    return { headerTitle, widgets, boardName: null, threadKey: "misc-" + Date.now() };
   }
+}
+
+// Helper to extract the unique Card ID from the URL
+// Example: https://projects.pinoyseoul.com/cards/1656800328600781977 -> 1656800328600781977
+function extractCardId(url) {
+  if (!url) return "unknown-thread";
+  const parts = url.split('/');
+  return parts[parts.length - 1]; // Returns the last part (the ID)
 }
