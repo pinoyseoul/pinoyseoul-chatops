@@ -61,17 +61,18 @@ function parsePlankaToPinoySeoul(text) {
   let widgets = [];
   
   // --- REGEX PATTERNS (The Readers) ---
-  // Now tuned for Planka's Markdown format:
-  // "Nash Ang moved [Card Name](URL) from **List A** to **List B** on Board Name"
+  // Now tuned for Planka's Markdown format based on your latest samples:
   
-  // 1. MOVEMENT: Capture User, Card Name, URL, From, To, Board
+  // 1. MOVEMENT: "User moved [Card Name](URL) from **List A** to **List B** on Board Name"
   const moveMatch = text.match(/^(.*?) moved \[(.*?)\]\((.*?)\) from \*\*(.*?)\*\* to \*\*(.*?)\*\* on (.*?)$/);
   
-  // 2. CREATION: "Nash Ang created card [Card Name](URL) in list **List** on Board"
-  const createMatch = text.match(/^(.*?) created card \[(.*?)\]\((.*?)\)(?: in list \*\*(.*?)\*\*)? on (.*?)$/);
+  // 2. CREATION: "User created [Card Name](URL) in **List** on Board"
+  // Fixed: Removed 'card' keyword and ensured list capture is strict
+  const createMatch = text.match(/^(.*?) created \[(.*?)\]\((.*?)\) in \*\*(.*?)\*\* on (.*?)$/);
 
-  // 3. COMMENT: "Nash Ang commented on card [Card Name](URL) on Board"
-  const commentMatch = text.match(/^(.*?) commented on card \[(.*?)\]\((.*?)\) on (.*?)$/);
+  // 3. COMMENT: "User left a new comment to [Card Name](URL) on Board:\n\n*Content*"
+  // Fixed: Matches "left a new comment to" and captures the content after the newline
+  const commentMatch = text.match(/^(.*?) left a new comment to \[(.*?)\]\((.*?)\) on (.*?):\s*\n\n(.*?)$/s);
 
   // --- LOGIC HANDLERS ---
 
@@ -145,7 +146,8 @@ function parsePlankaToPinoySeoul(text) {
     const user = createMatch[1];
     const cardName = createMatch[2];
     const cardUrl = createMatch[3];
-    const listName = createMatch[4] || "Unknown List";
+    const listName = createMatch[4];
+    const boardName = createMatch[5];
     
     headerTitle = "🎬 NEW STORY PITCH";
     
@@ -155,7 +157,7 @@ function parsePlankaToPinoySeoul(text) {
           "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/4202/4202611.png" }, // Sparkle
           "topLabel": "SUBMITTED BY " + user.toUpperCase(),
           "text": "New Idea: <b>" + cardName + "</b>",
-          "bottomLabel": "List: " + listName,
+          "bottomLabel": "List: " + listName + " (" + boardName + ")",
           "wrapText": true,
           "button": {
               "text": "View Pitch",
@@ -169,6 +171,11 @@ function parsePlankaToPinoySeoul(text) {
     const user = commentMatch[1];
     const cardName = commentMatch[2];
     const cardUrl = commentMatch[3];
+    const boardName = commentMatch[4];
+    let commentContent = commentMatch[5];
+
+    // Clean up Markdown italics/bold if present in the comment
+    commentContent = commentContent.replace(/^\*|\*$/g, ''); 
 
     headerTitle = "💬 EDITORIAL NOTE";
 
@@ -177,10 +184,11 @@ function parsePlankaToPinoySeoul(text) {
         "decoratedText": {
           "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/1380/1380338.png" }, // Chat Bubble
           "topLabel": "FEEDBACK FROM " + user.toUpperCase(),
-          "text": "Commented on: <b>" + cardName + "</b>",
+          "text": "<b>" + cardName + "</b>",
+          "bottomLabel": "\"" + commentContent + "\"",
           "wrapText": true,
           "button": {
-              "text": "Read Comment",
+              "text": "Reply",
               "onClick": { "openLink": { "url": cardUrl } }
           }
         }
