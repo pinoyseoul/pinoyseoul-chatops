@@ -12,7 +12,7 @@ const DEFAULT_WEBHOOK = "https://chat.googleapis.com/v1/spaces/AAQAotoa0bE/messa
 const BOARD_ROUTES = {
   // CORE TEAM BOARDS -> Core Team Room
   "General Inquiries": "https://chat.googleapis.com/v1/spaces/AAQAotoa0bE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=Ek0KkABCAIOiYGHYu8xv8FwB6AvoK3IYDyaCPGyFGu8",
-  "Brand & Creator Partnerships": "https://chat.googleapis.com/v1/spaces/AAQAkDpGC70/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=UMbbAlGL-MuY-8i56elIILptG4KGvefOhng-P9cgzg4",
+  "Brand & Creator Partnerships": "https://chat.googleapis.com/v1/spaces/AAQA2YS7Gg4/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=449Xne6i1EZfMaeRI8dkPmPztQhMKMbJ2CqCdBWXlRA",
   "Academy & Internships":     "https://chat.googleapis.com/v1/spaces/AAQAyDn7xAs/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=ZuV_QhFzHRiRaWtifrLv-Rxio-0JNwxkF50o0lWDaYI",
 
   // DEV TEAM BOARDS -> Dev Team Room
