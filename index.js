@@ -22,7 +22,7 @@ export default {
           "card": {
             "header": {
               "title": data.headerTitle,
-              "subtitle": "PinoySeoul Production Board",
+              "subtitle": "PinoySeoul Project Board",
               "imageUrl": env.BRAND_LOGO,
               "imageType": "CIRCLE"
             },
@@ -54,10 +54,10 @@ export default {
 
 // ============================================================
 // 🇵🇭🇰🇷 THE TRANSLATION ENGINE
-// Converts boring logs into Media Production Updates
+// Converts boring logs into Media Project Updates
 // ============================================================
 function parsePlankaToPinoySeoul(text) {
-  let headerTitle = "Production Log";
+  let headerTitle = "Project Log";
   let widgets = [];
   
   // --- REGEX PATTERNS (The Readers) ---
