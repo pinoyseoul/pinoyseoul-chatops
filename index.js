@@ -1,6 +1,39 @@
+// =================================================================
+// ⚙️ CONFIGURATION: THE SWITCHBOARD
+// =================================================================
+
+// 1. DEFAULT WEBHOOK (Where to send if the board isn't listed below)
+//    Use your main "General" or "Tech Support" room here.
+const DEFAULT_WEBHOOK = "https://chat.googleapis.com/v1/spaces/AAQAotoa0bE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=Ek0KkABCAIOiYGHYu8xv8FwB6AvoK3IYDyaCPGyFGu8";
+
+// 2. BOARD ROUTING (Map specific Planka Boards to specific Chat Rooms)
+//    Format: "Exact Board Name": "Webhook URL"
+//    Add as many lines as you need.
+const BOARD_ROUTES = {
+  // CORE TEAM BOARDS -> Core Team Room
+  "General Inquiries": "https://chat.googleapis.com/v1/spaces/AAQAotoa0bE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=Ek0KkABCAIOiYGHYu8xv8FwB6AvoK3IYDyaCPGyFGu8",
+  "Brand & Creator Partnerships": "https://chat.googleapis.com/v1/spaces/AAQAkDpGC70/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=UMbbAlGL-MuY-8i56elIILptG4KGvefOhng-P9cgzg4",
+  "Academy & Internships":     "https://chat.googleapis.com/v1/spaces/AAQAkDpGC70/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=UMbbAlGL-MuY-8i56elIILptG4KGvefOhng-P9cgzg4",
+
+  // DEV TEAM BOARDS -> Dev Team Room
+  "Server Maintainance":    "https://chat.googleapis.com/v1/spaces/AAQAWX5NV6s/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=N1YnRio1T-7kIFxZ8IouOuCPmtGSTiTyJe-xUGG-OcQ",
+  "App Development":     "https://chat.googleapis.com/v1/spaces/AAQAWX5NV6s/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=N1YnRio1T-7kIFxZ8IouOuCPmtGSTiTyJe-xUGG-OcQ",
+  "Partner Management":           "https://chat.googleapis.com/v1/spaces/AAQAWX5NV6s/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=N1YnRio1T-7kIFxZ8IouOuCPmtGSTiTyJe-xUGG-OcQ",
+
+  // INTERNS BOARDS -> Interns Hub
+  "Publishing Team":   "https://chat.googleapis.com/v1/spaces/AAAAaORpFVc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=_3eiMLnXu4HvNrARMfQ8l27kla4fMKpCfpjZRBzHxC8",
+  "Broadcast Team":   "https://chat.googleapis.com/v1/spaces/AAAAaORpFVc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=_3eiMLnXu4HvNrARMfQ8l27kla4fMKpCfpjZRBzHxC8",
+  "Outreach Team":   "https://chat.googleapis.com/v1/spaces/AAAAaORpFVc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=_3eiMLnXu4HvNrARMfQ8l27kla4fMKpCfpjZRBzHxC8"
+};
+
+// 3. BRANDING
+const BRAND_LOGO = "https://pbs.twimg.com/profile_images/1363502123871133708/8a2HeN9g_400x400.jpg";
+
+// =================================================================
+// 🚀 WORKER LOGIC
+// =================================================================
 export default {
   async fetch(request, env, ctx) {
-    // 1. Only allow POST requests
     if (request.method !== "POST") {
       return new Response("Method not allowed", { status: 405 });
     }
@@ -8,22 +41,32 @@ export default {
     try {
       const json = await request.json();
       
-      // 🚨 CRITICAL FIX: Apprise uses 'message', Planka Raw uses 'text'.
-      // We check both. If neither exists, we dump the whole JSON so you can see what happened.
-      const rawSentence = json.message || json.text || "Unknown Data: " + JSON.stringify(json);
+      // Get the message (Apprise uses 'message', Raw Planka uses 'text')
+      const rawSentence = json.message || json.text || "Unknown Data";
 
-      // 2. PARSE & TRANSLATE (The "Media Vibe" Engine)
+      // --- 1. PARSE DATA ---
+      // We extract the Board Name inside the parser now
       const data = parsePlankaToPinoySeoul(rawSentence);
 
-      // 3. CONSTRUCT THE CARD
+      // --- 2. DETERMINE DESTINATION ---
+      // Look up the board name in our config. If found, use that URL. If not, use Default.
+      // We trim whitespace just in case.
+      let targetWebhook = DEFAULT_WEBHOOK;
+      const detectedBoard = data.boardName ? data.boardName.trim() : "";
+      
+      if (detectedBoard && BOARD_ROUTES[detectedBoard]) {
+        targetWebhook = BOARD_ROUTES[detectedBoard];
+      }
+
+      // --- 3. CONSTRUCT CARD ---
       const payload = {
         "cardsV2": [{
           "cardId": "ps-planka-" + Date.now(),
           "card": {
             "header": {
               "title": data.headerTitle,
-              "subtitle": "PinoySeoul Project Board",
-              "imageUrl": env.BRAND_LOGO,
+              "subtitle": data.boardName || "PinoySeoul Projects",
+              "imageUrl": BRAND_LOGO,
               "imageType": "CIRCLE"
             },
             "sections": [{
@@ -33,12 +76,8 @@ export default {
         }]
       };
 
-      // 4. SEND TO GOOGLE CHAT
-      if (!env.GOOGLE_CHAT_WEBHOOK) {
-        return new Response("Error: GOOGLE_CHAT_WEBHOOK variable is missing.", { status: 500 });
-      }
-
-      await fetch(env.GOOGLE_CHAT_WEBHOOK, {
+      // --- 4. SEND ---
+      await fetch(targetWebhook, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -58,20 +97,19 @@ export default {
 // ============================================================
 function parsePlankaToPinoySeoul(text) {
   let headerTitle = "Project Log";
+  let boardName = null; // We try to capture this for routing
   let widgets = [];
   
-  // --- REGEX PATTERNS (The Readers) ---
-  // Now tuned for Planka's Markdown format based on your latest samples:
+  // --- REGEX PATTERNS ---
+  // Markdown formatted patterns provided by Planka/Apprise
   
-  // 1. MOVEMENT: "User moved [Card Name](URL) from **List A** to **List B** on Board Name"
+  // 1. MOVEMENT: "User moved [Card](URL) from **List A** to **List B** on Board Name"
   const moveMatch = text.match(/^(.*?) moved \[(.*?)\]\((.*?)\) from \*\*(.*?)\*\* to \*\*(.*?)\*\* on (.*?)$/);
   
-  // 2. CREATION: "User created [Card Name](URL) in **List** on Board"
-  // Fixed: Removed 'card' keyword and ensured list capture is strict
+  // 2. CREATION: "User created [Card](URL) in **List** on Board"
   const createMatch = text.match(/^(.*?) created \[(.*?)\]\((.*?)\) in \*\*(.*?)\*\* on (.*?)$/);
 
-  // 3. COMMENT: "User left a new comment to [Card Name](URL) on Board:\n\n*Content*"
-  // Fixed: Matches "left a new comment to" and captures the content after the newline
+  // 3. COMMENT: "User left a new comment to [Card](URL) on Board:\n\n*Content*"
   const commentMatch = text.match(/^(.*?) left a new comment to \[(.*?)\]\((.*?)\) on (.*?):\s*\n\n(.*?)$/s);
 
   // --- LOGIC HANDLERS ---
@@ -82,7 +120,7 @@ function parsePlankaToPinoySeoul(text) {
     const cardUrl = moveMatch[3];
     const fromList = moveMatch[4];
     const toList = moveMatch[5];
-    const boardName = moveMatch[6];
+    boardName = moveMatch[6]; // Captured!
 
     // DETECTING VICTORY
     if (toList.match(/Done|Published|Complete|Live|Pitch \/ Backlog/i)) {
@@ -147,7 +185,7 @@ function parsePlankaToPinoySeoul(text) {
     const cardName = createMatch[2];
     const cardUrl = createMatch[3];
     const listName = createMatch[4];
-    const boardName = createMatch[5];
+    boardName = createMatch[5]; // Captured!
     
     headerTitle = "🎬 NEW STORY PITCH";
     
@@ -157,7 +195,7 @@ function parsePlankaToPinoySeoul(text) {
           "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/4202/4202611.png" }, // Sparkle
           "topLabel": "SUBMITTED BY " + user.toUpperCase(),
           "text": "New Idea: <b>" + cardName + "</b>",
-          "bottomLabel": "List: " + listName + " (" + boardName + ")",
+          "bottomLabel": "List: " + listName,
           "wrapText": true,
           "button": {
               "text": "View Pitch",
@@ -171,10 +209,9 @@ function parsePlankaToPinoySeoul(text) {
     const user = commentMatch[1];
     const cardName = commentMatch[2];
     const cardUrl = commentMatch[3];
-    const boardName = commentMatch[4];
+    boardName = commentMatch[4]; // Captured!
     let commentContent = commentMatch[5];
 
-    // Clean up Markdown italics/bold if present in the comment
     commentContent = commentContent.replace(/^\*|\*$/g, ''); 
 
     headerTitle = "💬 EDITORIAL NOTE";
@@ -195,7 +232,7 @@ function parsePlankaToPinoySeoul(text) {
       }
     );
   }
-  // FALLBACK (If regex fails, just print the text nicely)
+  // FALLBACK
   else {
     headerTitle = "📋 TEAM ACTIVITY";
     widgets.push({
@@ -203,11 +240,5 @@ function parsePlankaToPinoySeoul(text) {
     });
   }
 
-  return { headerTitle, widgets };
-}
-
-// Helper to remove quotes if Planka adds them 'Like This'
-function cleanName(str) {
-  if (!str) return "Unknown Card";
-  return str.replace(/^'|'$/g, '');
+  return { headerTitle, widgets, boardName };
 }
