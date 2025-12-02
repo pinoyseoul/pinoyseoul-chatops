@@ -1,0 +1,11 @@
+{
+  "name": "pinoyseoul-chatops",
+  "version": "1.0.0",
+  "description": "PinoySeoul Automation Suite",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Nash Ang",
+  "license": "MIT"
+}
