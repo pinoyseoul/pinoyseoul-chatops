@@ -1,0 +1,7 @@
+name = "pinoyseoul-chatops"
+main = "index.js"
+compatibility_date = "2024-03-20"
+
+# This allows the code to access the "BRAND_LOGO" variable automatically.
+[vars]
+BRAND_LOGO = "https://pbs.twimg.com/profile_images/1363502123871133708/8a2HeN9g_400x400.jpg"
