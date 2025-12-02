@@ -245,7 +245,19 @@ function parsePlankaGeneric(text) {
 // Helper to extract the unique Card ID from the URL
 // Example: https://projects.pinoyseoul.com/cards/1656800328600781977 -> 1656800328600781977
 function extractCardId(url) {
-  if (!url) return "unknown-thread";
-  const parts = url.split('/');
-  return parts[parts.length - 1]; // Returns the last part (the ID)
+  if (!url) return "unknown-thread-" + Date.now();
+  
+  try {
+    // Handle cases like "url/" or "url?query" by splitting and taking the last actual ID
+    const cleanUrl = url.split('?')[0].replace(/\/$/, ""); 
+    const parts = cleanUrl.split('/');
+    const id = parts[parts.length - 1];
+    
+    // Safety check: ensure ID looks like an ID (not empty)
+    if (!id || id.trim() === "") return "unknown-thread-" + Date.now();
+    
+    return id;
+  } catch (e) {
+    return "error-thread-" + Date.now();
+  }
 }
