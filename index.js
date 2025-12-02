@@ -27,7 +27,7 @@ const BOARD_ROUTES = {
 };
 
 // 3. BRANDING
-const BRAND_LOGO = "https://pbs.twimg.com/profile_images/1363502123871133708/8a2HeN9g_400x400.jpg";
+const BRAND_LOGO = "https://planka.app/cms-content/1/uploads/site/sitelogomenue.png?p=692f37009f34c";
 
 // =================================================================
 // 🚀 WORKER LOGIC
