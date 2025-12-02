@@ -115,7 +115,7 @@ function parsePlankaToPinoySeoul(text) {
     
     // Ignore moves TO Backlog/Pitch (Regression)
     // Exception: Unless it came from Trash (Restoration), but usually we ignore.
-    if (toList.match(/Pitch \/ Backlog/i)) return null;
+    if (toList.match(/Pitch|Backlog|Planning|Scouting|Search/i)) return null;
 
     // ✅ ALLOW: VICTORY
     if (toList.match(/Done|Published|Complete|Live/i)) {
