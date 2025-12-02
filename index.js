@@ -61,42 +61,49 @@ function parsePlankaToPinoySeoul(text) {
   let widgets = [];
   
   // --- REGEX PATTERNS (The Readers) ---
+  // Now tuned for Planka's Markdown format:
+  // "Nash Ang moved [Card Name](URL) from **List A** to **List B** on Board Name"
   
-  // 1. MOVEMENT: "User moved card [Name] from [List A] to [List B]"
-  const moveMatch = text.match(/^(.*?) moved card (.*?) from (.*?) to (.*?)$/);
+  // 1. MOVEMENT: Capture User, Card Name, URL, From, To, Board
+  const moveMatch = text.match(/^(.*?) moved \[(.*?)\]\((.*?)\) from \*\*(.*?)\*\* to \*\*(.*?)\*\* on (.*?)$/);
   
-  // 2. CREATION: "User created card [Name] in list [List]"
-  // Note: Apprise often formats this as "User created card 'Name'"
-  const createMatch = text.match(/^(.*?) created card (.*?)(?: in list (.*?))?$/);
+  // 2. CREATION: "Nash Ang created card [Card Name](URL) in list **List** on Board"
+  const createMatch = text.match(/^(.*?) created card \[(.*?)\]\((.*?)\)(?: in list \*\*(.*?)\*\*)? on (.*?)$/);
 
-  // 3. COMMENT: "User commented on card [Name]"
-  const commentMatch = text.match(/^(.*?) commented on card (.*?)$/);
+  // 3. COMMENT: "Nash Ang commented on card [Card Name](URL) on Board"
+  const commentMatch = text.match(/^(.*?) commented on card \[(.*?)\]\((.*?)\) on (.*?)$/);
 
   // --- LOGIC HANDLERS ---
 
   if (moveMatch) {
     const user = moveMatch[1];
-    const cardName = cleanName(moveMatch[2]);
-    const fromList = moveMatch[3];
-    const toList = moveMatch[4];
+    const cardName = moveMatch[2];
+    const cardUrl = moveMatch[3];
+    const fromList = moveMatch[4];
+    const toList = moveMatch[5];
+    const boardName = moveMatch[6];
 
     // DETECTING VICTORY
-    // If it moves to Done, Published, or Ready
-    if (toList.match(/Done|Published|Complete|Live/i)) {
+    if (toList.match(/Done|Published|Complete|Live|Pitch \/ Backlog/i)) {
       headerTitle = "🚀 READY FOR BROADCAST";
       widgets.push(
         {
           "decoratedText": {
             "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/190/190411.png" }, // Checkmark
             "topLabel": "COMPLETED BY " + user.toUpperCase(),
-            "text": "<b>" + cardName + "</b> is now LIVE/DONE.",
-            "wrapText": true
+            "text": "<b>" + cardName + "</b>",
+            "bottomLabel": "Board: " + boardName,
+            "wrapText": true,
+            "button": {
+                "text": "Open Card",
+                "onClick": { "openLink": { "url": cardUrl } }
+            }
           }
         }
       );
     } 
     // DETECTING "IN PROGRESS"
-    else if (toList.match(/Doing|Progress|Writing/i)) {
+    else if (toList.match(/Doing|Progress|Writing|Drafting/i)) {
       headerTitle = "🎥 IN PRODUCTION";
       widgets.push(
         {
@@ -104,7 +111,12 @@ function parsePlankaToPinoySeoul(text) {
             "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/3059/3059446.png" }, // Mic/Rec
             "topLabel": "ACTIVE WORK BY " + user.toUpperCase(),
             "text": "Started working on: <b>" + cardName + "</b>",
-            "wrapText": true
+            "bottomLabel": "Moved to: " + toList,
+            "wrapText": true,
+            "button": {
+                "text": "Open Card",
+                "onClick": { "openLink": { "url": cardUrl } }
+            }
           }
         }
       );
@@ -116,8 +128,14 @@ function parsePlankaToPinoySeoul(text) {
         {
           "decoratedText": {
             "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/8138/8138518.png" }, // Recycle/Move
-            "text": "Moved <b>" + cardName + "</b> to <b>" + toList + "</b>",
-            "wrapText": true
+            "topLabel": user.toUpperCase() + " UPDATED STATUS",
+            "text": "<b>" + cardName + "</b>",
+            "bottomLabel": fromList + " ➔ " + toList,
+            "wrapText": true,
+            "button": {
+                "text": "Open Card",
+                "onClick": { "openLink": { "url": cardUrl } }
+            }
           }
         }
       );
@@ -125,7 +143,9 @@ function parsePlankaToPinoySeoul(text) {
   } 
   else if (createMatch) {
     const user = createMatch[1];
-    const cardName = cleanName(createMatch[2]);
+    const cardName = createMatch[2];
+    const cardUrl = createMatch[3];
+    const listName = createMatch[4] || "Unknown List";
     
     headerTitle = "🎬 NEW STORY PITCH";
     
@@ -134,15 +154,21 @@ function parsePlankaToPinoySeoul(text) {
         "decoratedText": {
           "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/4202/4202611.png" }, // Sparkle
           "topLabel": "SUBMITTED BY " + user.toUpperCase(),
-          "text": "Created new task: <b>" + cardName + "</b>",
-          "wrapText": true
+          "text": "New Idea: <b>" + cardName + "</b>",
+          "bottomLabel": "List: " + listName,
+          "wrapText": true,
+          "button": {
+              "text": "View Pitch",
+              "onClick": { "openLink": { "url": cardUrl } }
+          }
         }
       }
     );
   }
   else if (commentMatch) {
     const user = commentMatch[1];
-    const cardName = cleanName(commentMatch[2]);
+    const cardName = commentMatch[2];
+    const cardUrl = commentMatch[3];
 
     headerTitle = "💬 EDITORIAL NOTE";
 
@@ -150,8 +176,13 @@ function parsePlankaToPinoySeoul(text) {
       {
         "decoratedText": {
           "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/1380/1380338.png" }, // Chat Bubble
-          "topLabel": "FEEDBACK ON: " + cardName,
-          "text": "<b>" + user + "</b> added a comment."
+          "topLabel": "FEEDBACK FROM " + user.toUpperCase(),
+          "text": "Commented on: <b>" + cardName + "</b>",
+          "wrapText": true,
+          "button": {
+              "text": "Read Comment",
+              "onClick": { "openLink": { "url": cardUrl } }
+          }
         }
       }
     );
