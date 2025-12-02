@@ -1,25 +1,28 @@
 export default {
   async fetch(request, env, ctx) {
+    // 1. Only allow POST requests
     if (request.method !== "POST") {
       return new Response("Method not allowed", { status: 405 });
     }
 
     try {
       const json = await request.json();
-      const text = json.text || ""; // Planka's raw sentence
+      
+      // 🚨 CRITICAL FIX: Apprise uses 'message', Planka Raw uses 'text'.
+      // We check both. If neither exists, we dump the whole JSON so you can see what happened.
+      const rawSentence = json.message || json.text || "Unknown Data: " + JSON.stringify(json);
 
-      // 1. PARSE THE SENTENCE
-      // We break down the text to find "Who", "What", and "Where"
-      const data = parsePlankaText(text);
+      // 2. PARSE & TRANSLATE (The "Media Vibe" Engine)
+      const data = parsePlankaToPinoySeoul(rawSentence);
 
-      // 2. CONSTRUCT THE CARD
+      // 3. CONSTRUCT THE CARD
       const payload = {
         "cardsV2": [{
-          "cardId": "planka-" + Date.now(),
+          "cardId": "ps-planka-" + Date.now(),
           "card": {
             "header": {
               "title": data.headerTitle,
-              "subtitle": "PinoySeoul Projects",
+              "subtitle": "PinoySeoul Production Board",
               "imageUrl": env.BRAND_LOGO,
               "imageType": "CIRCLE"
             },
@@ -30,9 +33,9 @@ export default {
         }]
       };
 
-      // 3. SEND TO GOOGLE CHAT
+      // 4. SEND TO GOOGLE CHAT
       if (!env.GOOGLE_CHAT_WEBHOOK) {
-        return new Response("Error: Missing Webhook URL", { status: 500 });
+        return new Response("Error: GOOGLE_CHAT_WEBHOOK variable is missing.", { status: 500 });
       }
 
       await fetch(env.GOOGLE_CHAT_WEBHOOK, {
@@ -50,120 +53,122 @@ export default {
 };
 
 // ============================================================
-// 🧠 THE PARSER ENGINE
-// This turns simple sentences into rich UI components
+// 🇵🇭🇰🇷 THE TRANSLATION ENGINE
+// Converts boring logs into Media Production Updates
 // ============================================================
-function parsePlankaText(text) {
-  let headerTitle = "Project Update";
+function parsePlankaToPinoySeoul(text) {
+  let headerTitle = "Production Log";
   let widgets = [];
   
-  // REGEX PATTERNS FOR PLANKA ACTIONS
+  // --- REGEX PATTERNS (The Readers) ---
   
-  // A. MOVED CARD (The most complex one)
-  // Format: "User moved card [Name] from [List A] to [List B]"
+  // 1. MOVEMENT: "User moved card [Name] from [List A] to [List B]"
   const moveMatch = text.match(/^(.*?) moved card (.*?) from (.*?) to (.*?)$/);
   
-  // B. CREATED CARD
-  // Format: "User created card [Name] in list [List Name]"
-  const createMatch = text.match(/^(.*?) created card (.*?) in list (.*?)$/);
+  // 2. CREATION: "User created card [Name] in list [List]"
+  // Note: Apprise often formats this as "User created card 'Name'"
+  const createMatch = text.match(/^(.*?) created card (.*?)(?: in list (.*?))?$/);
 
-  // C. COMMENTED
-  // Format: "User commented on card [Name]"
+  // 3. COMMENT: "User commented on card [Name]"
   const commentMatch = text.match(/^(.*?) commented on card (.*?)$/);
 
   // --- LOGIC HANDLERS ---
 
   if (moveMatch) {
     const user = moveMatch[1];
-    const cardName = moveMatch[2];
+    const cardName = cleanName(moveMatch[2]);
     const fromList = moveMatch[3];
     const toList = moveMatch[4];
 
-    // Check if it's a "Victory" move
-    const isDone = toList.match(/Done|Published|Complete/i);
-    
-    headerTitle = isDone ? "✅ TASK COMPLETED" : "🔄 STATUS UPDATE";
-    const icon = isDone ? "https://cdn-icons-png.flaticon.com/512/190/190411.png" : "https://cdn-icons-png.flaticon.com/512/8138/8138518.png";
-    const color = isDone ? "#1E8E3E" : "#0038A8"; // Green vs Blue
-
-    widgets.push(
-      // User & Action
-      {
-        "decoratedText": {
-          "startIcon": { "iconUrl": icon },
-          "topLabel": "ACTION BY " + user.toUpperCase(),
-          "text": "Moved <b>" + cardName + "</b>",
-          "wrapText": true
+    // DETECTING VICTORY
+    // If it moves to Done, Published, or Ready
+    if (toList.match(/Done|Published|Complete|Live/i)) {
+      headerTitle = "🚀 READY FOR BROADCAST";
+      widgets.push(
+        {
+          "decoratedText": {
+            "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/190/190411.png" }, // Checkmark
+            "topLabel": "COMPLETED BY " + user.toUpperCase(),
+            "text": "<b>" + cardName + "</b> is now LIVE/DONE.",
+            "wrapText": true
+          }
         }
-      },
-      // The Visual Move (From -> To)
-      {
-        "columns": {
-          "columnItems": [
-            {
-              "widgets": [{
-                "decoratedText": {
-                  "topLabel": "FROM",
-                  "text": fromList,
-                  "startIcon": { "knownIcon": "BOOKMARK" }
-                }
-              }]
-            },
-            {
-              "widgets": [{
-                "decoratedText": {
-                  "topLabel": "TO",
-                  "text": "<b><font color=\"" + color + "\">" + toList + "</font></b>",
-                  "startIcon": { "knownIcon": "STAR" }
-                }
-              }]
-            }
-          ]
+      );
+    } 
+    // DETECTING "IN PROGRESS"
+    else if (toList.match(/Doing|Progress|Writing/i)) {
+      headerTitle = "🎥 IN PRODUCTION";
+      widgets.push(
+        {
+          "decoratedText": {
+            "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/3059/3059446.png" }, // Mic/Rec
+            "topLabel": "ACTIVE WORK BY " + user.toUpperCase(),
+            "text": "Started working on: <b>" + cardName + "</b>",
+            "wrapText": true
+          }
         }
-      }
-    );
+      );
+    }
+    // GENERIC MOVE
+    else {
+      headerTitle = "🔄 STATUS UPDATE";
+      widgets.push(
+        {
+          "decoratedText": {
+            "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/8138/8138518.png" }, // Recycle/Move
+            "text": "Moved <b>" + cardName + "</b> to <b>" + toList + "</b>",
+            "wrapText": true
+          }
+        }
+      );
+    }
   } 
   else if (createMatch) {
     const user = createMatch[1];
-    const cardName = createMatch[2];
-    const listName = createMatch[3];
-
-    headerTitle = "✨ NEW TASK CREATED";
+    const cardName = cleanName(createMatch[2]);
+    
+    headerTitle = "🎬 NEW STORY PITCH";
     
     widgets.push(
       {
         "decoratedText": {
-          "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/4202/4202611.png" },
-          "topLabel": "CREATED BY " + user.toUpperCase(),
-          "text": "<b>" + cardName + "</b>",
-          "bottomLabel": "In List: " + listName
+          "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/4202/4202611.png" }, // Sparkle
+          "topLabel": "SUBMITTED BY " + user.toUpperCase(),
+          "text": "Created new task: <b>" + cardName + "</b>",
+          "wrapText": true
         }
       }
     );
   }
   else if (commentMatch) {
     const user = commentMatch[1];
-    const cardName = commentMatch[2];
+    const cardName = cleanName(commentMatch[2]);
 
-    headerTitle = "💬 NEW COMMENT";
+    headerTitle = "💬 EDITORIAL NOTE";
 
     widgets.push(
       {
         "decoratedText": {
-          "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/1380/1380338.png" },
-          "topLabel": "ON CARD: " + cardName,
+          "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/1380/1380338.png" }, // Chat Bubble
+          "topLabel": "FEEDBACK ON: " + cardName,
           "text": "<b>" + user + "</b> added a comment."
         }
       }
     );
   }
-  // FALLBACK (For attachments, joins, etc.)
+  // FALLBACK (If regex fails, just print the text nicely)
   else {
-    headerTitle = "📋 PROJECT ACTIVITY";
+    headerTitle = "📋 TEAM ACTIVITY";
     widgets.push({
       "textParagraph": { "text": text }
     });
   }
 
   return { headerTitle, widgets };
+}
+
+// Helper to remove quotes if Planka adds them 'Like This'
+function cleanName(str) {
+  if (!str) return "Unknown Card";
+  return str.replace(/^'|'$/g, '');
 }
