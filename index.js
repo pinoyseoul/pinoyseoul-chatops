@@ -1,67 +1,40 @@
 export default {
   async fetch(request, env, ctx) {
-    // 1. Only allow POST requests (sending data)
     if (request.method !== "POST") {
       return new Response("Method not allowed", { status: 405 });
     }
 
     try {
       const json = await request.json();
-      
-      // 2. Get the message text from Planka
-      const text = json.text || "Update from Planka";
+      const text = json.text || ""; // Planka's raw sentence
 
-      // 3. Set Defaults (PinoySeoul Blue)
-      let themeColor = "#0038A8"; 
-      let iconUrl = "https://cdn-icons-png.flaticon.com/512/1087/1087815.png"; 
-      let title = "Project Update";
-      
-      // 4. "Vibe Check" - Change color/icon based on the action
-      if (text.match(/to Done|to Published/i)) {
-        themeColor = "#1E8E3E"; // Green for Wins
-        iconUrl = "https://cdn-icons-png.flaticon.com/512/190/190411.png";
-        title = "✅ TASK COMPLETED";
-      } 
-      else if (text.match(/created card/i)) {
-        themeColor = "#FDB913"; // Yellow for New Work
-        iconUrl = "https://cdn-icons-png.flaticon.com/512/4202/4202611.png";
-        title = "✨ NEW TASK";
-      }
-      else if (text.match(/commented/i)) {
-        title = "💬 NEW COMMENT";
-      }
+      // 1. PARSE THE SENTENCE
+      // We break down the text to find "Who", "What", and "Where"
+      const data = parsePlankaText(text);
 
-      // 5. Build the Google Chat Card
+      // 2. CONSTRUCT THE CARD
       const payload = {
         "cardsV2": [{
           "cardId": "planka-" + Date.now(),
           "card": {
             "header": {
-              "title": title,
+              "title": data.headerTitle,
               "subtitle": "PinoySeoul Projects",
-              "imageUrl": env.BRAND_LOGO, 
+              "imageUrl": env.BRAND_LOGO,
               "imageType": "CIRCLE"
             },
             "sections": [{
-              "widgets": [{
-                  "decoratedText": {
-                    "startIcon": { "iconUrl": iconUrl },
-                    "text": text, 
-                    "wrapText": true
-                  }
-              }]
+              "widgets": data.widgets
             }]
           }
         }]
       };
 
-      // 6. CHECK FOR THE "PHONE NUMBER" (Webhook URL)
-      // This looks for the variable you saved in Cloudflare Settings
+      // 3. SEND TO GOOGLE CHAT
       if (!env.GOOGLE_CHAT_WEBHOOK) {
-        return new Response("Error: GOOGLE_CHAT_WEBHOOK is missing in Settings > Variables", { status: 500 });
+        return new Response("Error: Missing Webhook URL", { status: 500 });
       }
 
-      // 7. Send to Google Chat
       await fetch(env.GOOGLE_CHAT_WEBHOOK, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -75,3 +48,122 @@ export default {
     }
   }
 };
+
+// ============================================================
+// 🧠 THE PARSER ENGINE
+// This turns simple sentences into rich UI components
+// ============================================================
+function parsePlankaText(text) {
+  let headerTitle = "Project Update";
+  let widgets = [];
+  
+  // REGEX PATTERNS FOR PLANKA ACTIONS
+  
+  // A. MOVED CARD (The most complex one)
+  // Format: "User moved card [Name] from [List A] to [List B]"
+  const moveMatch = text.match(/^(.*?) moved card (.*?) from (.*?) to (.*?)$/);
+  
+  // B. CREATED CARD
+  // Format: "User created card [Name] in list [List Name]"
+  const createMatch = text.match(/^(.*?) created card (.*?) in list (.*?)$/);
+
+  // C. COMMENTED
+  // Format: "User commented on card [Name]"
+  const commentMatch = text.match(/^(.*?) commented on card (.*?)$/);
+
+  // --- LOGIC HANDLERS ---
+
+  if (moveMatch) {
+    const user = moveMatch[1];
+    const cardName = moveMatch[2];
+    const fromList = moveMatch[3];
+    const toList = moveMatch[4];
+
+    // Check if it's a "Victory" move
+    const isDone = toList.match(/Done|Published|Complete/i);
+    
+    headerTitle = isDone ? "✅ TASK COMPLETED" : "🔄 STATUS UPDATE";
+    const icon = isDone ? "https://cdn-icons-png.flaticon.com/512/190/190411.png" : "https://cdn-icons-png.flaticon.com/512/8138/8138518.png";
+    const color = isDone ? "#1E8E3E" : "#0038A8"; // Green vs Blue
+
+    widgets.push(
+      // User & Action
+      {
+        "decoratedText": {
+          "startIcon": { "iconUrl": icon },
+          "topLabel": "ACTION BY " + user.toUpperCase(),
+          "text": "Moved <b>" + cardName + "</b>",
+          "wrapText": true
+        }
+      },
+      // The Visual Move (From -> To)
+      {
+        "columns": {
+          "columnItems": [
+            {
+              "widgets": [{
+                "decoratedText": {
+                  "topLabel": "FROM",
+                  "text": fromList,
+                  "startIcon": { "knownIcon": "BOOKMARK" }
+                }
+              }]
+            },
+            {
+              "widgets": [{
+                "decoratedText": {
+                  "topLabel": "TO",
+                  "text": "<b><font color=\"" + color + "\">" + toList + "</font></b>",
+                  "startIcon": { "knownIcon": "STAR" }
+                }
+              }]
+            }
+          ]
+        }
+      }
+    );
+  } 
+  else if (createMatch) {
+    const user = createMatch[1];
+    const cardName = createMatch[2];
+    const listName = createMatch[3];
+
+    headerTitle = "✨ NEW TASK CREATED";
+    
+    widgets.push(
+      {
+        "decoratedText": {
+          "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/4202/4202611.png" },
+          "topLabel": "CREATED BY " + user.toUpperCase(),
+          "text": "<b>" + cardName + "</b>",
+          "bottomLabel": "In List: " + listName
+        }
+      }
+    );
+  }
+  else if (commentMatch) {
+    const user = commentMatch[1];
+    const cardName = commentMatch[2];
+
+    headerTitle = "💬 NEW COMMENT";
+
+    widgets.push(
+      {
+        "decoratedText": {
+          "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/1380/1380338.png" },
+          "topLabel": "ON CARD: " + cardName,
+          "text": "<b>" + user + "</b> added a comment."
+        }
+      }
+    );
+  }
+  // FALLBACK (For attachments, joins, etc.)
+  else {
+    headerTitle = "📋 PROJECT ACTIVITY";
+    widgets.push({
+      "textParagraph": { "text": text }
+    });
+  }
+
+  return { headerTitle, widgets };
+}
