@@ -39,7 +39,7 @@ export default {
       const rawSentence = json.message || json.text || "Unknown Data";
 
       // --- 1. PARSE & FILTER ---
-      const data = parsePlankaToPinoySeoul(rawSentence);
+      const data = parsePlankaGeneric(rawSentence);
 
       // If the parser returned null, it means it was NOISE (Trash/Backlog move)
       if (!data) {
@@ -61,7 +61,7 @@ export default {
           "card": {
             "header": {
               "title": data.headerTitle,
-              "subtitle": data.boardName || "PinoySeoul Projects",
+              "subtitle": data.boardName || "Project Update",
               "imageUrl": BRAND_LOGO,
               "imageType": "CIRCLE"
             },
@@ -88,10 +88,11 @@ export default {
 };
 
 // ============================================================
-// 🇵🇭🇰🇷 THE FILTER & TRANSLATION ENGINE
+// 🌐 THE UNIVERSAL TRANSLATION ENGINE
+// Converts boring logs into Universal Project Updates
 // ============================================================
-function parsePlankaToPinoySeoul(text) {
-  let headerTitle = "Production Log";
+function parsePlankaGeneric(text) {
+  let headerTitle = "Project Activity";
   let widgets = [];
   
   // --- REGEX PATTERNS (Markdown Support) ---
@@ -119,11 +120,11 @@ function parsePlankaToPinoySeoul(text) {
 
     // ✅ ALLOW: VICTORY
     if (toList.match(/Done|Published|Complete|Live/i)) {
-      headerTitle = "🚀 READY FOR BROADCAST";
+      headerTitle = "✅ TASK COMPLETED";
       widgets.push(
         {
           "decoratedText": {
-            "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/190/190411.png" },
+            "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/190/190411.png" }, // Checkmark
             "topLabel": "COMPLETED BY " + user.toUpperCase(),
             "text": "<b>" + cardName + "</b>",
             "bottomLabel": "Board: " + boardName,
@@ -135,11 +136,11 @@ function parsePlankaToPinoySeoul(text) {
     } 
     // ✅ ALLOW: MOMENTUM
     else if (toList.match(/Doing|Drafting|Progress|Writing/i)) {
-      headerTitle = "🎥 IN PRODUCTION";
+      headerTitle = "▶️ WORK IN PROGRESS";
       widgets.push(
         {
           "decoratedText": {
-            "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/3059/3059446.png" },
+            "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/324/324126.png" }, // Play Button
             "topLabel": "ACTIVE WORK BY " + user.toUpperCase(),
             "text": "Started working on: <b>" + cardName + "</b>",
             "bottomLabel": "Moved to: " + toList,
@@ -155,7 +156,7 @@ function parsePlankaToPinoySeoul(text) {
       widgets.push(
         {
           "decoratedText": {
-            "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/8138/8138518.png" },
+            "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/8138/8138518.png" }, // Recycle/Move
             "topLabel": user.toUpperCase() + " UPDATED STATUS",
             "text": "<b>" + cardName + "</b>",
             "bottomLabel": fromList + " ➔ " + toList,
@@ -176,17 +177,17 @@ function parsePlankaToPinoySeoul(text) {
     const boardName = createMatch[5];
     
     // CREATION IS ALWAYS GOOD NEWS (Even in Backlog)
-    headerTitle = "🎬 NEW STORY PITCH";
+    headerTitle = "✨ NEW CARD CREATED";
     
     widgets.push(
       {
         "decoratedText": {
-          "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/4202/4202611.png" },
-          "topLabel": "SUBMITTED BY " + user.toUpperCase(),
-          "text": "New Idea: <b>" + cardName + "</b>",
+          "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/4202/4202611.png" }, // Sparkle
+          "topLabel": "ADDED BY " + user.toUpperCase(),
+          "text": "New Task: <b>" + cardName + "</b>",
           "bottomLabel": "List: " + listName,
           "wrapText": true,
-          "button": { "text": "View Pitch", "onClick": { "openLink": { "url": cardUrl } } }
+          "button": { "text": "View Task", "onClick": { "openLink": { "url": cardUrl } } }
         }
       }
     );
@@ -207,13 +208,13 @@ function parsePlankaToPinoySeoul(text) {
     // If comment is less than 4 characters (e.g. "ok", "up"), ignore it.
     if (commentContent.length < 4) return null;
 
-    headerTitle = "💬 EDITORIAL NOTE";
+    headerTitle = "💬 NEW COMMENT";
 
     widgets.push(
       {
         "decoratedText": {
-          "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/1380/1380338.png" },
-          "topLabel": "FEEDBACK FROM " + user.toUpperCase(),
+          "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/1380/1380338.png" }, // Chat Bubble
+          "topLabel": "COMMENT FROM " + user.toUpperCase(),
           "text": "<b>" + cardName + "</b>",
           "bottomLabel": "\"" + commentContent + "\"",
           "wrapText": true,
