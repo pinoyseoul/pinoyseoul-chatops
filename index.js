@@ -56,16 +56,11 @@ export default {
       }
 
       // --- 3. SMART THREADING LOGIC ---
-      // Strategy: 
-      // - Creation & Wins = Full Card (Big Header)
-      // - Progress = Mini Card (No Header)
-      
       let cardStructure = {};
       let threadKey = data.threadKey;
 
       if (data.isVictory) {
         // VICTORY: Break the thread! Force a new message so it's seen.
-        // We append "-win" to the ID to make it unique from the main thread.
         threadKey = data.threadKey + "-win";
         
         cardStructure = {
@@ -83,7 +78,7 @@ export default {
         cardStructure = {
           "header": {
             "title": data.headerTitle,
-            "subtitle": data.boardName || "New Task",
+            "subtitle": data.boardName || "New Initiative",
             "imageUrl": BRAND_LOGO,
             "imageType": "CIRCLE"
           },
@@ -92,9 +87,6 @@ export default {
       } 
       else {
         // ROUTINE UPDATE: "Headless" Card. 
-        // No Header Image. Just the info. Keeps threads clean.
-        
-        // We add the Title as a simple text widget since we removed the Header
         data.widgets.unshift({
             "textParagraph": { "text": "<b>" + data.headerTitle + "</b>" }
         });
@@ -138,7 +130,6 @@ function parsePlankaGeneric(text) {
   let widgets = [];
   let threadKey = "general-update";
   
-  // STATUS FLAGS
   let isVictory = false;
   let isCreation = false;
   
@@ -159,14 +150,14 @@ function parsePlankaGeneric(text) {
     
     threadKey = extractCardId(cardUrl);
 
-    // 🛑 FILTER
+    // 🛑 FILTER NOISE
     if (toList.match(/Trash/i)) return null;
-    if (toList.match(/Pitch|Backlog|Planning|Scouting|Search/i)) return null;
+    if (toList.match(/Pitch|Backlog|Planning|Scouting|Search|Ideas/i)) return null;
 
-    // ✅ VICTORY
+    // ✅ VICTORY (Completed)
     if (toList.match(/Done|Published|Complete|Live/i)) {
       isVictory = true;
-      headerTitle = "✅ TASK COMPLETED";
+      headerTitle = getRandomTitle("VICTORY"); // Dynamic Title
       widgets.push({
         "decoratedText": {
           "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/190/190411.png" },
@@ -178,9 +169,9 @@ function parsePlankaGeneric(text) {
         }
       });
     } 
-    // ✅ MOMENTUM
+    // ✅ MOMENTUM (In Progress)
     else if (toList.match(/Doing|Drafting|Progress|Writing/i)) {
-      headerTitle = "▶️ WORK IN PROGRESS";
+      headerTitle = getRandomTitle("MOMENTUM"); // Dynamic Title
       widgets.push({
         "decoratedText": {
           "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/324/324126.png" },
@@ -192,9 +183,9 @@ function parsePlankaGeneric(text) {
         }
       });
     }
-    // ✅ GENERIC
+    // ✅ GENERIC (Status Change)
     else {
-      headerTitle = "🔄 STATUS UPDATE";
+      headerTitle = getRandomTitle("UPDATE"); // Dynamic Title
       widgets.push({
         "decoratedText": {
           "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/8138/8138518.png" },
@@ -218,7 +209,7 @@ function parsePlankaGeneric(text) {
     threadKey = extractCardId(cardUrl);
     isCreation = true;
     
-    headerTitle = "✨ NEW CARD CREATED";
+    headerTitle = getRandomTitle("CREATION"); // Dynamic Title
     
     widgets.push({
       "decoratedText": {
@@ -245,7 +236,7 @@ function parsePlankaGeneric(text) {
 
     if (commentContent.length < 4) return null;
 
-    headerTitle = "💬 NEW COMMENT";
+    headerTitle = getRandomTitle("COMMENT"); // Dynamic Title
 
     widgets.push({
       "decoratedText": {
@@ -268,6 +259,51 @@ function parsePlankaGeneric(text) {
     });
     return { headerTitle, widgets, boardName: null, threadKey: "misc-" + Date.now(), isVictory, isCreation };
   }
+}
+
+// ============================================================
+// 🎲 THE VOCABULARY ENGINE (Randomizer)
+// ============================================================
+function getRandomTitle(type) {
+  const vocab = {
+    "CREATION": [
+      "✨ NEW INITIATIVE",
+      "💡 FRESH IDEA",
+      "📥 ADDED TO PIPELINE",
+      "🌱 NEW TASK CREATED",
+      "🎬 ACTION ITEM ADDED"
+    ],
+    "VICTORY": [
+      "🚀 READY FOR BROADCAST",
+      "✅ MISSION ACCOMPLISHED",
+      "🏆 WIN SECURED",
+      "🚢 SHIPPED IT",
+      "🏁 CROSSING THE FINISH LINE"
+    ],
+    "MOMENTUM": [
+      "▶️ WORK IN PROGRESS",
+      "🔨 UNDER CONSTRUCTION",
+      "🍳 COOKING NOW",
+      "🏃‍♂️ IN MOTION",
+      "🎥 PRODUCTION STARTED"
+    ],
+    "COMMENT": [
+      "💬 TEAM CHATTER",
+      "🗣️ FEEDBACK LOOP",
+      "📝 NOTE ADDED",
+      "📨 INCOMING MESSAGE",
+      "💭 THOUGHT SHARED"
+    ],
+    "UPDATE": [
+      "🔄 STATUS UPDATE",
+      "📋 PROJECT LOG",
+      "👣 NEXT STEP TAKEN",
+      "⚙️ CARD MOVED"
+    ]
+  };
+
+  const list = vocab[type] || vocab["UPDATE"];
+  return list[Math.floor(Math.random() * list.length)];
 }
 
 function extractCardId(url) {
