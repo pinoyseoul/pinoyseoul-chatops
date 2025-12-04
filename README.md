@@ -2,9 +2,10 @@
 
 > **The "Celebration Engine"**: A Google Apps Script toolkit that turns operational output into team victories.
 
-**Author:** Nash Ang  
-**Organization:** PinoySeoul Media Enterprise  
-**License:** MIT
+- **Author:** Nash Ang
+- **Portfolio:** https://subtleazn.github.io
+- **Acknowledgments:** This project was built to support the [PinoySeoul Media Enterprise](https://pinoyseoul.com).
+
 
 ## 📖 Overview
 
