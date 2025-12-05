@@ -18,7 +18,7 @@ const BOARD_ROUTES = {
   "Partner Management":           "https://chat.googleapis.com/v1/spaces/AAQAWX5NV6s/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=N1YnRio1T-7kIFxZ8IouOuCPmtGSTiTyJe-xUGG-OcQ",
 
   // OTHERS
-  "Web App Development":           "https://chat.googleapis.com/v1/spaces/AAQAaj6OQiU/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=6GXxAFtZ-NR8qoHqvChm6vcHHRH6A270sig8bk6Yv-A",
+  "Other Stuff":           "https://chat.googleapis.com/v1/spaces/AAQAaj6OQiU/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=6GXxAFtZ-NR8qoHqvChm6vcHHRH6A270sig8bk6Yv-A",
 
   // INTERNS
   "Publishing Team":              "https://chat.googleapis.com/v1/spaces/AAAAaORpFVc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=_3eiMLnXu4HvNrARMfQ8l27kla4fMKpCfpjZRBzHxC8",
@@ -155,7 +155,7 @@ function parsePlankaGeneric(text) {
     if (toList.match(/Pitch|Backlog|Planning|Scouting|Search|Ideas/i)) return null;
 
     // ✅ VICTORY (Completed)
-    if (toList.match(/Done|Published|Complete|Live/i)) {
+    if (toList.match(/Done|Published|Complete|Deployed|Stable|Finished|Completed|Live/i)) {
       isVictory = true;
       headerTitle = getRandomTitle("VICTORY"); // Dynamic Title
       widgets.push({
