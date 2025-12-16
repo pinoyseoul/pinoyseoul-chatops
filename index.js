@@ -57,16 +57,17 @@ export default {
 
       // --- 3. SMART THREADING LOGIC ---
       let cardStructure = {};
-      let threadKey = data.threadKey;
+      
+      // CRITICAL FIX: Keep the threadKey consistent. 
+      // Do not append "-win" or the thread will break.
+      let threadKey = data.threadKey; 
 
       if (data.isVictory) {
-        // VICTORY: Break the thread! Force a new message so it's seen.
-        threadKey = data.threadKey + "-win";
-        
+        // VICTORY: Same thread, but celebration Header
         cardStructure = {
           "header": {
             "title": data.headerTitle,
-            "subtitle": data.boardName || "Victory",
+            "subtitle": "Task Completed",
             "imageUrl": BRAND_LOGO,
             "imageType": "CIRCLE"
           },
@@ -86,7 +87,8 @@ export default {
         };
       } 
       else {
-        // ROUTINE UPDATE: "Headless" Card. 
+        // ROUTINE UPDATE: "Headless" Card to reduce visual noise
+        // We add the title as bold text instead of a large header
         data.widgets.unshift({
             "textParagraph": { "text": "<b>" + data.headerTitle + "</b>" }
         });
@@ -106,6 +108,8 @@ export default {
       };
 
       // --- 5. SEND ---
+      // 'messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD' ensures that if the thread 
+      // exists, it replies. If not (first time seeing this ID), it creates a new one.
       const webhookUrlWithThreading = targetWebhook + "&messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD";
 
       await fetch(webhookUrlWithThreading, {
@@ -134,8 +138,13 @@ function parsePlankaGeneric(text) {
   let isCreation = false;
   
   // --- REGEX PATTERNS ---
+  // Matches: "User moved [Card](URL) from **List A** to **List B** on BoardName"
   const moveMatch = text.match(/^(.*?) moved \[(.*?)\]\((.*?)\) from \*\*(.*?)\*\* to \*\*(.*?)\*\* on (.*?)$/);
+  
+  // Matches: "User created [Card](URL) in **List** on BoardName"
   const createMatch = text.match(/^(.*?) created \[(.*?)\]\((.*?)\)(?: in \*\*(.*?)\*\*)? on (.*?)$/);
+  
+  // Matches: "User left a new comment to [Card](URL) on BoardName:\n\nComment"
   const commentMatch = text.match(/^(.*?) left a new comment to \[(.*?)\]\((.*?)\) on (.*?):\s*\n\n(.*?)$/s);
 
   // --- LOGIC ---
@@ -157,7 +166,7 @@ function parsePlankaGeneric(text) {
     // ✅ VICTORY (Completed)
     if (toList.match(/Done|Published|Complete|Deployed|Stable|Finished|Completed|Live/i)) {
       isVictory = true;
-      headerTitle = getRandomTitle("VICTORY"); // Dynamic Title
+      headerTitle = getRandomTitle("VICTORY"); 
       widgets.push({
         "decoratedText": {
           "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/190/190411.png" },
@@ -171,7 +180,7 @@ function parsePlankaGeneric(text) {
     } 
     // ✅ MOMENTUM (In Progress)
     else if (toList.match(/Doing|Drafting|Progress|Writing/i)) {
-      headerTitle = getRandomTitle("MOMENTUM"); // Dynamic Title
+      headerTitle = getRandomTitle("MOMENTUM"); 
       widgets.push({
         "decoratedText": {
           "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/324/324126.png" },
@@ -185,7 +194,7 @@ function parsePlankaGeneric(text) {
     }
     // ✅ GENERIC (Status Change)
     else {
-      headerTitle = getRandomTitle("UPDATE"); // Dynamic Title
+      headerTitle = getRandomTitle("UPDATE"); 
       widgets.push({
         "decoratedText": {
           "startIcon": { "iconUrl": "https://cdn-icons-png.flaticon.com/512/8138/8138518.png" },
@@ -204,12 +213,12 @@ function parsePlankaGeneric(text) {
     const cardName = createMatch[2];
     const cardUrl = createMatch[3];
     const listName = createMatch[4] || "Backlog";
-    const boardName = createMatch[5];
+    const boardName = createMatch[5]; // Usually Planka strings end with "on [BoardName]"
     
     threadKey = extractCardId(cardUrl);
     isCreation = true;
     
-    headerTitle = getRandomTitle("CREATION"); // Dynamic Title
+    headerTitle = getRandomTitle("CREATION"); 
     
     widgets.push({
       "decoratedText": {
@@ -236,7 +245,7 @@ function parsePlankaGeneric(text) {
 
     if (commentContent.length < 4) return null;
 
-    headerTitle = getRandomTitle("COMMENT"); // Dynamic Title
+    headerTitle = getRandomTitle("COMMENT"); 
 
     widgets.push({
       "decoratedText": {
