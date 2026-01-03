@@ -3,30 +3,33 @@
 // =================================================================
 
 // 1. DEFAULT WEBHOOK (Fallback)
-const DEFAULT_WEBHOOK = "https://chat.googleapis.com/v1/spaces/AAQAotoa0bE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=Ek0KkABCAIOiYGHYu8xv8FwB6AvoK3IYDyaCPGyFGu8";
+const DEFAULT_WEBHOOK = "https://chat.googleapis.com/v1/spaces/AAQAotoa0bE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=Ib3WWOCF8u_Eqi3_pEy7cN3vIUzbmzGhDsbXCdFgw1I";
 
-// 2. BOARD ROUTING (Map Boards -> Rooms)
+// 🆕 2. OPPA LOGGING BRIDGE (The Google Apps Script Web App URL)
+const OPPA_BRIDGE_URL = "https://script.google.com/macros/s/AKfycbyODe5GoLoLIF9XaqbQBMGs4UKvh6k0vfnNhaUvsvBma3vADNfwoSf5DDrhSSkcenwT0w/exec"; 
+
+// 3. BOARD ROUTING (Map Boards -> Rooms)
 const BOARD_ROUTES = {
   // CORE TEAM
-  "General Inquiries":            "https://chat.googleapis.com/v1/spaces/AAQAotoa0bE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=Ek0KkABCAIOiYGHYu8xv8FwB6AvoK3IYDyaCPGyFGu8",
-  "Brand & Creator Partnerships": "https://chat.googleapis.com/v1/spaces/AAQA2YS7Gg4/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=449Xne6i1EZfMaeRI8dkPmPztQhMKMbJ2CqCdBWXlRA",
-  "Academy & Internships":        "https://chat.googleapis.com/v1/spaces/AAQAyDn7xAs/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=ZuV_QhFzHRiRaWtifrLv-Rxio-0JNwxkF50o0lWDaYI",
+  "General Inquiries":            "https://chat.googleapis.com/v1/spaces/AAQAotoa0bE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=Ib3WWOCF8u_Eqi3_pEy7cN3vIUzbmzGhDsbXCdFgw1I",
+  "Brand & Creator Partnerships": "https://chat.googleapis.com/v1/spaces/AAQA2YS7Gg4/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=YRoKvHbUMjg5o3kdJpPEidJvyUx6tx-tRUe6ri945qc",
+  "Academy & Internships":        "https://chat.googleapis.com/v1/spaces/AAQAyDn7xAs/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=5heGPJCdttd3N9bJsKP0ix_df605vVi3nXRUXLzYY4k",
 
   // DEV TEAM
-  "Server Maintainance":          "https://chat.googleapis.com/v1/spaces/AAQAWX5NV6s/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=N1YnRio1T-7kIFxZ8IouOuCPmtGSTiTyJe-xUGG-OcQ",
-  "App Development":              "https://chat.googleapis.com/v1/spaces/AAQAWX5NV6s/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=N1YnRio1T-7kIFxZ8IouOuCPmtGSTiTyJe-xUGG-OcQ",
-  "Partner Management":           "https://chat.googleapis.com/v1/spaces/AAQAWX5NV6s/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=N1YnRio1T-7kIFxZ8IouOuCPmtGSTiTyJe-xUGG-OcQ",
+  "Server Maintainance":          "https://chat.googleapis.com/v1/spaces/AAQAWX5NV6s/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=uGPE8lrgkiR7HqkwEUbCbHjR1ekltLC9Z6jtVSb6EtE",
+  "App Development":              "https://chat.googleapis.com/v1/spaces/AAQAWX5NV6s/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=uGPE8lrgkiR7HqkwEUbCbHjR1ekltLC9Z6jtVSb6EtE",
+  "Partner Management":           "https://chat.googleapis.com/v1/spaces/AAQAWX5NV6s/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=uGPE8lrgkiR7HqkwEUbCbHjR1ekltLC9Z6jtVSb6EtE",
 
   // OTHERS
-  "Other Stuff":           "https://chat.googleapis.com/v1/spaces/AAQAaj6OQiU/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=6GXxAFtZ-NR8qoHqvChm6vcHHRH6A270sig8bk6Yv-A",
+  "Other Stuff":           "https://chat.googleapis.com/v1/spaces/AAQAaj6OQiU/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=dsiUEstakIkYYiYu7K7I_60-DDTao8Zn7-8HKgQpurA",
 
   // INTERNS
-  "Publishing Team":              "https://chat.googleapis.com/v1/spaces/AAAAaORpFVc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=_3eiMLnXu4HvNrARMfQ8l27kla4fMKpCfpjZRBzHxC8",
-  "Broadcast Team":               "https://chat.googleapis.com/v1/spaces/AAAAaORpFVc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=_3eiMLnXu4HvNrARMfQ8l27kla4fMKpCfpjZRBzHxC8",
-  "Outreach Team":                "https://chat.googleapis.com/v1/spaces/AAAAaORpFVc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=_3eiMLnXu4HvNrARMfQ8l27kla4fMKpCfpjZRBzHxC8"
+  "Publishing Team":              "https://chat.googleapis.com/v1/spaces/AAAAaORpFVc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=N8UVaRvy1i5EY-Dgo5F4ck1oRa4KzghMEXIfcDz6FyU",
+  "Broadcast Team":               "https://chat.googleapis.com/v1/spaces/AAAAaORpFVc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=N8UVaRvy1i5EY-Dgo5F4ck1oRa4KzghMEXIfcDz6FyU",
+  "Outreach Team":                "https://chat.googleapis.com/v1/spaces/AAAAaORpFVc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=N8UVaRvy1i5EY-Dgo5F4ck1oRa4KzghMEXIfcDz6FyU"
 };
 
-// 3. BRANDING
+// 4. BRANDING
 const BRAND_LOGO = "https://planka.app/cms-content/1/uploads/site/sitelogomenue.png";
 
 // =================================================================
@@ -55,15 +58,27 @@ export default {
         targetWebhook = BOARD_ROUTES[detectedBoard];
       }
 
-      // --- 3. SMART THREADING LOGIC ---
+      // --- 3. OPPA LOGGING (FIRE AND FORGET) ---
+      if (OPPA_BRIDGE_URL && !OPPA_BRIDGE_URL.includes("YOUR_GAS_BRIDGE")) {
+        // We do not await this, so it doesn't slow down the chat response
+        const logPromise = fetch(OPPA_BRIDGE_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            source: "Planka",
+            user: data.user || "Planka User",
+            message: data.oppaMessage || "Activity on Board"
+          })
+        }).catch(err => console.log("OPPA Log Failed", err));
+        
+        ctx.waitUntil(logPromise); // Cloudflare specific: Keep worker alive for async task
+      }
+
+      // --- 4. SMART THREADING LOGIC ---
       let cardStructure = {};
-      
-      // CRITICAL FIX: Keep the threadKey consistent. 
-      // Do not append "-win" or the thread will break.
       let threadKey = data.threadKey; 
 
       if (data.isVictory) {
-        // VICTORY: Same thread, but celebration Header
         cardStructure = {
           "header": {
             "title": data.headerTitle,
@@ -75,7 +90,6 @@ export default {
         };
       } 
       else if (data.isCreation) {
-        // CREATION: Start the main thread. Full Branding.
         cardStructure = {
           "header": {
             "title": data.headerTitle,
@@ -87,18 +101,15 @@ export default {
         };
       } 
       else {
-        // ROUTINE UPDATE: "Headless" Card to reduce visual noise
-        // We add the title as bold text instead of a large header
         data.widgets.unshift({
             "textParagraph": { "text": "<b>" + data.headerTitle + "</b>" }
         });
-
         cardStructure = {
           "sections": [{ "widgets": data.widgets }]
         };
       }
 
-      // --- 4. CONSTRUCT PAYLOAD ---
+      // --- 5. CONSTRUCT PAYLOAD ---
       const payload = {
         "thread": { "threadKey": threadKey },
         "cardsV2": [{
@@ -107,9 +118,7 @@ export default {
         }]
       };
 
-      // --- 5. SEND ---
-      // 'messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD' ensures that if the thread 
-      // exists, it replies. If not (first time seeing this ID), it creates a new one.
+      // --- 6. SEND ---
       const webhookUrlWithThreading = targetWebhook + "&messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD";
 
       await fetch(webhookUrlWithThreading, {
@@ -137,20 +146,19 @@ function parsePlankaGeneric(text) {
   let isVictory = false;
   let isCreation = false;
   
+  // For OPPA Logging
+  let user = "Planka User";
+  let oppaMessage = "";
+  
   // --- REGEX PATTERNS ---
-  // Matches: "User moved [Card](URL) from **List A** to **List B** on BoardName"
   const moveMatch = text.match(/^(.*?) moved \[(.*?)\]\((.*?)\) from \*\*(.*?)\*\* to \*\*(.*?)\*\* on (.*?)$/);
-  
-  // Matches: "User created [Card](URL) in **List** on BoardName"
   const createMatch = text.match(/^(.*?) created \[(.*?)\]\((.*?)\)(?: in \*\*(.*?)\*\*)? on (.*?)$/);
-  
-  // Matches: "User left a new comment to [Card](URL) on BoardName:\n\nComment"
   const commentMatch = text.match(/^(.*?) left a new comment to \[(.*?)\]\((.*?)\) on (.*?):\s*\n\n(.*?)$/s);
 
   // --- LOGIC ---
 
   if (moveMatch) {
-    const user = moveMatch[1];
+    user = moveMatch[1];
     const cardName = moveMatch[2];
     const cardUrl = moveMatch[3];
     const fromList = moveMatch[4];
@@ -158,6 +166,7 @@ function parsePlankaGeneric(text) {
     const boardName = moveMatch[6];
     
     threadKey = extractCardId(cardUrl);
+    oppaMessage = `📋 **Card Moved**: ${cardName} (To ${toList})`;
 
     // 🛑 FILTER NOISE
     if (toList.match(/Trash/i)) return null;
@@ -205,18 +214,19 @@ function parsePlankaGeneric(text) {
         }
       });
     }
-    return { headerTitle, widgets, boardName, threadKey, isVictory, isCreation };
+    return { headerTitle, widgets, boardName, threadKey, isVictory, isCreation, user, oppaMessage };
   } 
   
   else if (createMatch) {
-    const user = createMatch[1];
+    user = createMatch[1];
     const cardName = createMatch[2];
     const cardUrl = createMatch[3];
     const listName = createMatch[4] || "Backlog";
-    const boardName = createMatch[5]; // Usually Planka strings end with "on [BoardName]"
+    const boardName = createMatch[5]; 
     
     threadKey = extractCardId(cardUrl);
     isCreation = true;
+    oppaMessage = `✨ **New Task**: ${cardName} (in ${listName})`;
     
     headerTitle = getRandomTitle("CREATION"); 
     
@@ -230,11 +240,11 @@ function parsePlankaGeneric(text) {
         "button": { "text": "View Task", "onClick": { "openLink": { "url": cardUrl } } }
       }
     });
-    return { headerTitle, widgets, boardName, threadKey, isVictory, isCreation };
+    return { headerTitle, widgets, boardName, threadKey, isVictory, isCreation, user, oppaMessage };
   }
   
   else if (commentMatch) {
-    const user = commentMatch[1];
+    user = commentMatch[1];
     const cardName = commentMatch[2];
     const cardUrl = commentMatch[3];
     const boardName = commentMatch[4];
@@ -242,6 +252,7 @@ function parsePlankaGeneric(text) {
 
     threadKey = extractCardId(cardUrl);
     commentContent = commentContent.replace(/^\*|\*$/g, ''); 
+    oppaMessage = `💬 **Comment**: "${commentContent.substring(0, 30)}..." on ${cardName}`;
 
     if (commentContent.length < 4) return null;
 
@@ -257,7 +268,7 @@ function parsePlankaGeneric(text) {
         "button": { "text": "Reply", "onClick": { "openLink": { "url": cardUrl } } }
       }
     });
-    return { headerTitle, widgets, boardName, threadKey, isVictory, isCreation };
+    return { headerTitle, widgets, boardName, threadKey, isVictory, isCreation, user, oppaMessage };
   }
   
   // FALLBACK
@@ -266,7 +277,7 @@ function parsePlankaGeneric(text) {
     widgets.push({
       "textParagraph": { "text": text }
     });
-    return { headerTitle, widgets, boardName: null, threadKey: "misc-" + Date.now(), isVictory, isCreation };
+    return { headerTitle, widgets, boardName: null, threadKey: "misc-" + Date.now(), isVictory, isCreation, user: "Unknown", oppaMessage: "Activity Detected" };
   }
 }
 
@@ -275,42 +286,12 @@ function parsePlankaGeneric(text) {
 // ============================================================
 function getRandomTitle(type) {
   const vocab = {
-    "CREATION": [
-      "✨ NEW INITIATIVE",
-      "💡 FRESH IDEA",
-      "📥 ADDED TO PIPELINE",
-      "🌱 NEW TASK CREATED",
-      "🎬 ACTION ITEM ADDED"
-    ],
-    "VICTORY": [
-      "🚀 READY FOR BROADCAST",
-      "✅ MISSION ACCOMPLISHED",
-      "🏆 WIN SECURED",
-      "🚢 SHIPPED IT",
-      "🏁 CROSSING THE FINISH LINE"
-    ],
-    "MOMENTUM": [
-      "▶️ WORK IN PROGRESS",
-      "🔨 UNDER CONSTRUCTION",
-      "🍳 COOKING NOW",
-      "🏃‍♂️ IN MOTION",
-      "🎥 PRODUCTION STARTED"
-    ],
-    "COMMENT": [
-      "💬 TEAM CHATTER",
-      "🗣️ FEEDBACK LOOP",
-      "📝 NOTE ADDED",
-      "📨 INCOMING MESSAGE",
-      "💭 THOUGHT SHARED"
-    ],
-    "UPDATE": [
-      "🔄 STATUS UPDATE",
-      "📋 PROJECT LOG",
-      "👣 NEXT STEP TAKEN",
-      "⚙️ CARD MOVED"
-    ]
+    "CREATION": [ "✨ NEW INITIATIVE", "💡 FRESH IDEA", "📥 ADDED TO PIPELINE", "🌱 NEW TASK CREATED", "🎬 ACTION ITEM ADDED" ],
+    "VICTORY": [ "🚀 READY FOR BROADCAST", "✅ MISSION ACCOMPLISHED", "🏆 WIN SECURED", "🚢 SHIPPED IT", "🏁 CROSSING THE FINISH LINE" ],
+    "MOMENTUM": [ "▶️ WORK IN PROGRESS", "🔨 UNDER CONSTRUCTION", "🍳 COOKING NOW", "🏃‍♂️ IN MOTION", "🎥 PRODUCTION STARTED" ],
+    "COMMENT": [ "💬 TEAM CHATTER", "🗣️ FEEDBACK LOOP", "📝 NOTE ADDED", "📨 INCOMING MESSAGE", "💭 THOUGHT SHARED" ],
+    "UPDATE": [ "🔄 STATUS UPDATE", "📋 PROJECT LOG", "👣 NEXT STEP TAKEN", "⚙️ CARD MOVED" ]
   };
-
   const list = vocab[type] || vocab["UPDATE"];
   return list[Math.floor(Math.random() * list.length)];
 }
