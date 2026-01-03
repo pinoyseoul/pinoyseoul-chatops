@@ -6,6 +6,7 @@
 const DEFAULT_WEBHOOK = "https://chat.googleapis.com/v1/spaces/AAQAotoa0bE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=Ib3WWOCF8u_Eqi3_pEy7cN3vIUzbmzGhDsbXCdFgw1I";
 
 // 🆕 2. OPPA LOGGING BRIDGE (The Google Apps Script Web App URL)
+// Ensure this matches your DEPLOYED Web App URL
 const OPPA_BRIDGE_URL = "https://script.google.com/macros/s/AKfycbyODe5GoLoLIF9XaqbQBMGs4UKvh6k0vfnNhaUvsvBma3vADNfwoSf5DDrhSSkcenwT0w/exec"; 
 
 // 3. BOARD ROUTING (Map Boards -> Rooms)
@@ -59,19 +60,27 @@ export default {
       }
 
       // --- 3. OPPA LOGGING (FIRE AND FORGET) ---
-      if (OPPA_BRIDGE_URL && !OPPA_BRIDGE_URL.includes("YOUR_GAS_BRIDGE")) {
+      if (OPPA_BRIDGE_URL && OPPA_BRIDGE_URL.startsWith("http")) {
         // We do not await this, so it doesn't slow down the chat response
+        // Added User-Agent to prevent Google 403 blocks
         const logPromise = fetch(OPPA_BRIDGE_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "User-Agent": "Cloudflare-Worker/1.0"
+          },
           body: JSON.stringify({
             source: "Planka",
             user: data.user || "Planka User",
             message: data.oppaMessage || "Activity on Board"
           })
-        }).catch(err => console.log("OPPA Log Failed", err));
+        }).then(resp => {
+            console.log("OPPA Log Status:", resp.status);
+        }).catch(err => {
+            console.log("OPPA Log Failed:", err);
+        });
         
-        ctx.waitUntil(logPromise); // Cloudflare specific: Keep worker alive for async task
+        ctx.waitUntil(logPromise); 
       }
 
       // --- 4. SMART THREADING LOGIC ---
