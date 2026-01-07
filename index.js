@@ -167,7 +167,7 @@ function parsePlankaGeneric(text) {
   // --- LOGIC ---
 
   if (moveMatch) {
-    user = moveMatch[1];
+    user = moveMatch[1].replace(/\\/g, ""); // FIX: Remove escaped backslashes from user name
     const cardName = moveMatch[2];
     const cardUrl = moveMatch[3];
     const fromList = moveMatch[4];
@@ -227,7 +227,7 @@ function parsePlankaGeneric(text) {
   } 
   
   else if (createMatch) {
-    user = createMatch[1];
+    user = createMatch[1].replace(/\\/g, ""); // FIX: Remove escaped backslashes from user name
     const cardName = createMatch[2];
     const cardUrl = createMatch[3];
     const listName = createMatch[4] || "Backlog";
@@ -253,7 +253,7 @@ function parsePlankaGeneric(text) {
   }
   
   else if (commentMatch) {
-    user = commentMatch[1];
+    user = commentMatch[1].replace(/\\/g, ""); // FIX: Remove escaped backslashes from user name
     const cardName = commentMatch[2];
     const cardUrl = commentMatch[3];
     const boardName = commentMatch[4];
