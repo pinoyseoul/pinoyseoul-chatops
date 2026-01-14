@@ -29,7 +29,7 @@ const BOARD_ROUTES = {
   "Outreach Team":                "https://chat.googleapis.com/v1/spaces/AAAAaORpFVc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=N8UVaRvy1i5EY-Dgo5F4ck1oRa4KzghMEXIfcDz6FyU"
 };
 
-// 4. BRANDING (Planka Icon)
+// 4. BRANDING
 const BRAND_LOGO = "https://planka.app/cms-content/1/uploads/site/sitelogomenue.png";
 
 // =================================================================
@@ -77,7 +77,6 @@ export default {
       }
 
       // --- 4. CONSTRUCT PAYLOAD (CLEAN DESIGN) ---
-      // We focus on the Task Name in the header, User Action in subtitle, and Content in body.
       const payload = {
         "thread": { "threadKey": data.threadKey },
         "cardsV2": [{
@@ -107,7 +106,7 @@ export default {
 };
 
 // ============================================================
-// 🌐 THE UNIVERSAL TRANSLATION ENGINE (CLEAN UI)
+// 🌐 THE UNIVERSAL TRANSLATION ENGINE (UI REDESIGNED)
 // ============================================================
 function parsePlankaGeneric(text) {
   let user = "Planka User";
@@ -123,7 +122,7 @@ function parsePlankaGeneric(text) {
   const createMatch = text.match(/^(.*?) created \[(.*?)\]\((.*?)\)(?: in \*\*(.*?)\*\*)? on (.*?)$/);
   const commentMatch = text.match(/^(.*?) left a new comment to \[(.*?)\]\((.*?)\) on (.*?):\s*\n\n(.*?)$/s);
 
-  // Helper to remove backslashes (Fixes "Staff \#3" -> "Staff #3")
+  // Helper to remove backslashes
   const clean = (str) => (str ? str.replace(/\\/g, "") : str);
 
   // --- 1. CARD MOVED ---
@@ -142,18 +141,20 @@ function parsePlankaGeneric(text) {
     if (toList.match(/Trash/i)) return null;
     if (toList.match(/Pitch|Backlog|Planning|Scouting|Search|Ideas/i)) return null;
 
-    // UI: Status Update
+    // Header: Subject = Task Name, Sub = Who
     cardHeader = {
-        "title": cardName, // Task is King
+        "title": cardName, 
         "subtitle": `Moved by ${user}`,
-        "imageUrl": "https://cdn-icons-png.flaticon.com/512/12533/12533316.png", // Moving Icon
+        "imageUrl": BRAND_LOGO,
         "imageType": "CIRCLE"
     };
 
+    // Body: The Context
     cardSections = [{
         "widgets": [{
             "decoratedText": {
                 "startIcon": { "knownIcon": "FLIGHT_TAKEOFF" }, 
+                "topLabel": "STATUS UPDATE",
                 "text": `<b>${fromList} ➔ ${toList}</b>`,
                 "button": { "text": "Open Card", "onClick": { "openLink": { "url": cardUrl } } }
             }
@@ -174,11 +175,10 @@ function parsePlankaGeneric(text) {
     threadKey = extractCardId(cardUrl);
     oppaMessage = `✨ **New Task**: ${cardName} (in ${listName})`;
     
-    // UI: New Item
     cardHeader = {
-        "title": cardName, // Task is King
+        "title": cardName, 
         "subtitle": `Created by ${user}`,
-        "imageUrl": "https://cdn-icons-png.flaticon.com/512/4202/4202611.png", // Star/New Icon
+        "imageUrl": BRAND_LOGO,
         "imageType": "CIRCLE"
     };
 
@@ -186,7 +186,8 @@ function parsePlankaGeneric(text) {
         "widgets": [{
             "decoratedText": {
                 "startIcon": { "knownIcon": "STAR" },
-                "text": `<b>List: ${listName}</b>`,
+                "topLabel": "NEW TASK",
+                "text": `<b>In: ${listName}</b>`,
                 "button": { "text": "View Task", "onClick": { "openLink": { "url": cardUrl } } }
             }
         }]
@@ -204,29 +205,45 @@ function parsePlankaGeneric(text) {
     let commentContent = clean(commentMatch[5]);
 
     threadKey = extractCardId(cardUrl);
-    commentContent = commentContent.replace(/^\*|\*$/g, ''); 
+    
+    // OPPA Log: Truncated
     oppaMessage = `💬 **Comment**: "${commentContent.substring(0, 30)}..." on ${cardName}`;
+
+    // Clean for display (remove wrapping asterisks)
+    commentContent = commentContent.replace(/^\*|\*$/g, ''); 
 
     if (commentContent.length < 4) return null;
 
-    // UI: Communication
     cardHeader = {
-        "title": cardName, // Task is King
+        "title": cardName,
         "subtitle": `Comment by ${user}`,
         "imageUrl": "https://cdn-icons-png.flaticon.com/512/1380/1380338.png", // Chat Icon
         "imageType": "CIRCLE"
     };
 
-    cardSections = [{
-        "widgets": [{
-            "decoratedText": {
-                "startIcon": { "knownIcon": "EMAIL" },
-                "text": `"${commentContent}"`, // The actual comment
-                "wrapText": true,
-                "button": { "text": "Reply", "onClick": { "openLink": { "url": cardUrl } } }
-            }
-        }]
-    }];
+    // Body: Use TextParagraph for better readability of the full comment content
+    cardSections = [
+        {
+            "widgets": [
+                { 
+                    "textParagraph": { 
+                        "text": commentContent 
+                    } 
+                }
+            ]
+        },
+        {
+            "widgets": [
+                {
+                    "buttonList": {
+                        "buttons": [
+                            { "text": "Reply", "onClick": { "openLink": { "url": cardUrl } } }
+                        ]
+                    }
+                }
+            ]
+        }
+    ];
 
     return { boardName, threadKey, user, oppaMessage, cardHeader, cardSections };
   }
