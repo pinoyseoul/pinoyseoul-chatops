@@ -11,18 +11,18 @@ const OPPA_BRIDGE_URL = "https://script.google.com/macros/s/AKfycbyODe5GoLoLIF9X
 
 // 3. BOARD ROUTING (Map Boards -> Rooms)
 const BOARD_ROUTES = {
-  // CORE TEAM
+  // STAFF
   "General Inquiries":            "https://chat.googleapis.com/v1/spaces/AAQAotoa0bE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=Ib3WWOCF8u_Eqi3_pEy7cN3vIUzbmzGhDsbXCdFgw1I",
   "Brand & Creator Partnerships": "https://chat.googleapis.com/v1/spaces/AAQA2YS7Gg4/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=YRoKvHbUMjg5o3kdJpPEidJvyUx6tx-tRUe6ri945qc",
   "Academy & Internships":        "https://chat.googleapis.com/v1/spaces/AAQAyDn7xAs/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=5heGPJCdttd3N9bJsKP0ix_df605vVi3nXRUXLzYY4k",
 
-  // DEV TEAM
+  // DEV
   "Server Maintainance":          "https://chat.googleapis.com/v1/spaces/AAQAWX5NV6s/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=uGPE8lrgkiR7HqkwEUbCbHjR1ekltLC9Z6jtVSb6EtE",
   "App Development":              "https://chat.googleapis.com/v1/spaces/AAQAWX5NV6s/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=uGPE8lrgkiR7HqkwEUbCbHjR1ekltLC9Z6jtVSb6EtE",
   "Partner Management":           "https://chat.googleapis.com/v1/spaces/AAQAWX5NV6s/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=uGPE8lrgkiR7HqkwEUbCbHjR1ekltLC9Z6jtVSb6EtE",
 
-  // OTHERS
-  "Other Stuff":           "https://chat.googleapis.com/v1/spaces/AAQAaj6OQiU/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=dsiUEstakIkYYiYu7K7I_60-DDTao8Zn7-8HKgQpurA",
+  // ADMIN
+  "Notebook":           "https://chat.googleapis.com/v1/spaces/AAQAaj6OQiU/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=dsiUEstakIkYYiYu7K7I_60-DDTao8Zn7-8HKgQpurA",
 
   // INTERNS
   "Publishing Team":              "https://chat.googleapis.com/v1/spaces/AAAAaORpFVc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=N8UVaRvy1i5EY-Dgo5F4ck1oRa4KzghMEXIfcDz6FyU",
@@ -166,13 +166,16 @@ function parsePlankaGeneric(text) {
 
   // --- LOGIC ---
 
+  // Helper to remove backslashes
+  const clean = (str) => (str ? str.replace(/\\/g, "") : str);
+
   if (moveMatch) {
-    user = moveMatch[1].replace(/\\/g, ""); // FIX: Remove escaped backslashes from user name
-    const cardName = moveMatch[2];
+    user = clean(moveMatch[1]);
+    const cardName = clean(moveMatch[2]);
     const cardUrl = moveMatch[3];
-    const fromList = moveMatch[4];
-    const toList = moveMatch[5];
-    const boardName = moveMatch[6];
+    const fromList = clean(moveMatch[4]);
+    const toList = clean(moveMatch[5]);
+    const boardName = clean(moveMatch[6]);
     
     threadKey = extractCardId(cardUrl);
     oppaMessage = `📋 **Card Moved**: ${cardName} (To ${toList})`;
@@ -227,11 +230,11 @@ function parsePlankaGeneric(text) {
   } 
   
   else if (createMatch) {
-    user = createMatch[1].replace(/\\/g, ""); // FIX: Remove escaped backslashes from user name
-    const cardName = createMatch[2];
+    user = clean(createMatch[1]);
+    const cardName = clean(createMatch[2]);
     const cardUrl = createMatch[3];
-    const listName = createMatch[4] || "Backlog";
-    const boardName = createMatch[5]; 
+    const listName = clean(createMatch[4]) || "Backlog";
+    const boardName = clean(createMatch[5]); 
     
     threadKey = extractCardId(cardUrl);
     isCreation = true;
@@ -253,10 +256,10 @@ function parsePlankaGeneric(text) {
   }
   
   else if (commentMatch) {
-    user = commentMatch[1].replace(/\\/g, ""); // FIX: Remove escaped backslashes from user name
-    const cardName = commentMatch[2];
+    user = clean(commentMatch[1]);
+    const cardName = clean(commentMatch[2]);
     const cardUrl = commentMatch[3];
-    const boardName = commentMatch[4];
+    const boardName = clean(commentMatch[4]);
     let commentContent = commentMatch[5];
 
     threadKey = extractCardId(cardUrl);
