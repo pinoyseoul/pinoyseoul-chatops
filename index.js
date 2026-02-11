@@ -24,9 +24,10 @@ const BOARD_ROUTES = {
   "Notebook":           "https://chat.googleapis.com/v1/spaces/AAQAaj6OQiU/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=dsiUEstakIkYYiYu7K7I_60-DDTao8Zn7-8HKgQpurA",
 
   // INTERNS
-  "Publishing Team":              "https://chat.googleapis.com/v1/spaces/AAAAaORpFVc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=N8UVaRvy1i5EY-Dgo5F4ck1oRa4KzghMEXIfcDz6FyU",
-  "Broadcast Team":               "https://chat.googleapis.com/v1/spaces/AAAAaORpFVc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=N8UVaRvy1i5EY-Dgo5F4ck1oRa4KzghMEXIfcDz6FyU",
-  "Outreach Team":                "https://chat.googleapis.com/v1/spaces/AAAAaORpFVc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=N8UVaRvy1i5EY-Dgo5F4ck1oRa4KzghMEXIfcDz6FyU"
+  "Publishing Lane":              "https://chat.googleapis.com/v1/spaces/AAAAaORpFVc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=N8UVaRvy1i5EY-Dgo5F4ck1oRa4KzghMEXIfcDz6FyU",
+  "Broadcast Lane":               "https://chat.googleapis.com/v1/spaces/AAAAaORpFVc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=N8UVaRvy1i5EY-Dgo5F4ck1oRa4KzghMEXIfcDz6FyU",
+  "Tech Lane":                    "https://chat.googleapis.com/v1/spaces/AAAAaORpFVc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=N8UVaRvy1i5EY-Dgo5F4ck1oRa4KzghMEXIfcDz6FyU",
+  "Outreach Lane":                "https://chat.googleapis.com/v1/spaces/AAAAaORpFVc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=N8UVaRvy1i5EY-Dgo5F4ck1oRa4KzghMEXIfcDz6FyU"
 };
 
 // 4. BRANDING
