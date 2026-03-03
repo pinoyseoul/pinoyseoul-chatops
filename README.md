@@ -42,9 +42,6 @@ It serves as the bridge between our disparate tools and **Google Chat**, keeping
 5.  **For Polling:** Set a Time-Driven Trigger (e.g., Every Hour).
 
 ## 💡 Philosophy
-
-> *"We are volunteer-based. We don't force work; we glorify output. When a volunteer sees their work celebrated instantly in the team chat, it creates a dopamine loop that drives motivation."* — Nash Ang
-
 ---
 
 © 2025 PinoySeoul Media Enterprise. Open Source for the Community.
