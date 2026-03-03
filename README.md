@@ -41,7 +41,4 @@ It serves as the bridge between our disparate tools and **Google Chat**, keeping
 4.  **For Webhooks:** Deploy as a Web App (Execute as Me, Access: Anyone).
 5.  **For Polling:** Set a Time-Driven Trigger (e.g., Every Hour).
 
-## 💡 Philosophy
----
-
 © 2025 PinoySeoul Media Enterprise. Open Source for the Community.
