@@ -11,11 +11,11 @@ const OPPA_BRIDGE_URL = "https://script.google.com/macros/s/AKfycbyODe5GoLoLIF9X
 // 3. BOARD ROUTING (Map Boards -> Rooms)
 const BOARD_ROUTES = {
   // TEAM
-  "General Inquiries":            "https://chat.googleapis.com/v1/spaces/AAQAotoa0bE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=Ib3WWOCF8u_Eqi3_pEy7cN3vIUzbmzGhDsbXCdFgw1I",
-  "Seoul Talents": "https://chat.googleapis.com/v1/spaces/AAQA2YS7Gg4/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=YRoKvHbUMjg5o3kdJpPEidJvyUx6tx-tRUe6ri945qc",
-  "Internship Program": "https://chat.googleapis.com/v1/spaces/AAQA5i9dHd4/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=ycMR6D_lbYrLgCLbzPq-Rlr4nBFKNkbw_FqLSuBRueg",
-  "Manila AI Film Festival": "https://chat.googleapis.com/v1/spaces/AAQA9IFfeC4/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=JSKtMHfbq-iCXQbvhlaEpUabgTbz19re3-cG2i-1T9g",
-  "Korea Pinoy Media Academy":        "https://chat.googleapis.com/v1/spaces/AAQAyDn7xAs/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=5heGPJCdttd3N9bJsKP0ix_df605vVi3nXRUXLzYY4k",
+  "General Inquiries":             "https://chat.googleapis.com/v1/spaces/AAQAotoa0bE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=Ib3WWOCF8u_Eqi3_pEy7cN3vIUzbmzGhDsbXCdFgw1I",
+  "Seoul Talents":                 "https://chat.googleapis.com/v1/spaces/AAQA2YS7Gg4/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=YRoKvHbUMjg5o3kdJpPEidJvyUx6tx-tRUe6ri945qc",
+  "Internship Program":            "https://chat.googleapis.com/v1/spaces/AAQA5i9dHd4/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=ycMR6D_lbYrLgCLbzPq-Rlr4nBFKNkbw_FqLSuBRueg",
+  "Manila AI Film Festival":       "https://chat.googleapis.com/v1/spaces/AAQA9IFfeC4/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=JSKtMHfbq-iCXQbvhlaEpUabgTbz19re3-cG2i-1T9g",
+  "Korea Pinoy Media Academy":     "https://chat.googleapis.com/v1/spaces/AAQAyDn7xAs/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=5heGPJCdttd3N9bJsKP0ix_df605vVi3nXRUXLzYY4k",
 
   // DEV
   "Server Maintainance":          "https://chat.googleapis.com/v1/spaces/AAQAWX5NV6s/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=uGPE8lrgkiR7HqkwEUbCbHjR1ekltLC9Z6jtVSb6EtE",
